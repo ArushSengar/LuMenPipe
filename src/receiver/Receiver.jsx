@@ -7,6 +7,20 @@ import { getCropGeometry } from '../lib/crop.js';
 import { assembleFile } from '../lib/pipeline.js';
 import { sniffFileType } from '../lib/sniff.js';
 
+function saveFile(bytes, filename, mime) {
+  const u8 = bytes instanceof Uint8Array ? bytes : Uint8Array.from(bytes);
+  const blob = new Blob([u8], { type: mime || "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
 export default function Receiver() {
   const [isSecure, setIsSecure] = useState(true);
   const [gridN, setGridN] = useState(2); // default 2x2 per spec
@@ -420,6 +434,48 @@ export default function Receiver() {
     }).catch(() => {});
   };
 
+  const [copiedContent, setCopiedContent] = useState(false);
+
+  // Task 1: Decode first ~280 bytes as UTF-8 text for inline verification
+  const previewText = React.useMemo(() => {
+    if (!resultData?.bytes) return '';
+    const slice = resultData.bytes.slice(0, 280);
+    try {
+      return new TextDecoder('utf-8', { fatal: false }).decode(slice);
+    } catch {
+      return '';
+    }
+  }, [resultData]);
+
+  // Decode full bytes as UTF-8 for clipboard backup
+  const fullText = React.useMemo(() => {
+    if (!resultData?.bytes) return '';
+    try {
+      return new TextDecoder('utf-8', { fatal: false }).decode(resultData.bytes);
+    } catch {
+      return '';
+    }
+  }, [resultData]);
+
+  const copyToClipboard = () => {
+    const text = fullText || previewText;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedContent(true);
+      setTimeout(() => setCopiedContent(false), 2000);
+    }).catch(() => {});
+  };
+
+  // Derive output filename and MIME with lumenpipe-demo.txt fallback
+  const isTxtOrBin = !resultData?.sniff?.ext || resultData?.sniff?.ext === 'bin';
+  const outputFilename = isTxtOrBin ? 'lumenpipe-demo.txt' : `lumenpipe-demo.${resultData.sniff.ext}`;
+  const outputMime = outputFilename.endsWith('.txt') ? 'text/plain' : (resultData?.sniff?.mime || 'text/plain');
+
+  const handleSave = () => {
+    if (!resultData?.bytes) return;
+    saveFile(resultData.bytes, outputFilename, outputMime);
+  };
+
   return (
     <div className="receiver-page">
       <header className="receiver-header">
@@ -449,16 +505,43 @@ export default function Receiver() {
         </div>
       )}
 
-      {/* Result Card per spec §6.9 & prompt P8 */}
+      {/* Inline Verification Card per Task 1 & Task 2 */}
       {hudState === 'COMPLETE' && resultData && (
-        <div className="result-card">
+        <div className="result-card verification-card">
           <div className="result-header">
-            <span className="result-badge-success">✓ CRC OK</span>
+            <span className="result-badge-success">✓ CRC32 VERIFIED</span>
             <span className="result-crc">CRC32: 0x{resultData.crcHex}</span>
           </div>
-          <div className="result-details">
-            <div>Type: <strong>{resultData.sniff.ext.toUpperCase()}</strong> ({resultData.sniff.mime})</div>
-            <div>Size: <strong>{resultData.bytes.length.toLocaleString()} bytes</strong></div>
+
+          <div className="verification-details">
+            <div className="verification-row">
+              <span className="verification-label">File:</span>
+              <strong className="verification-value">{outputFilename}</strong>
+            </div>
+            <div className="verification-row">
+              <span className="verification-label">Size:</span>
+              <strong className="verification-value">{resultData.bytes.length.toLocaleString()} bytes</strong>
+            </div>
+            <div className="verification-row">
+              <span className="verification-label">Type:</span>
+              <span className="verification-value">{outputMime}</span>
+            </div>
+          </div>
+
+          <div className="verification-preview-block">
+            <div className="verification-preview-header">
+              <span>Decoded UTF-8 Text (first ~280 bytes):</span>
+              <button
+                type="button"
+                className="btn-clipboard"
+                onClick={copyToClipboard}
+              >
+                {copiedContent ? '✓ Copied!' : '📋 Copy to clipboard'}
+              </button>
+            </div>
+            <pre className="verification-preview">
+              {previewText}
+            </pre>
           </div>
 
           {resultData.sniff.isImage && blobUrl && (
@@ -468,15 +551,13 @@ export default function Receiver() {
           )}
 
           <div className="result-actions">
-            {blobUrl && (
-              <a
-                href={blobUrl}
-                download={`lumenpipe_received.${resultData.sniff.ext}`}
-                className="btn btn-primary"
-              >
-                Save File
-              </a>
-            )}
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSave}
+            >
+              Save File
+            </button>
             <button className="btn btn-secondary" onClick={resetAll}>
               New Transfer
             </button>
