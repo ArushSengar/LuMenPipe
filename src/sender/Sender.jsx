@@ -84,9 +84,13 @@ export default function Sender() {
 
   useEffect(() => {
     updateLayout();
+    const t = setTimeout(updateLayout, 60);
     window.addEventListener('resize', updateLayout);
-    return () => window.removeEventListener('resize', updateLayout);
-  }, [selectedPlanId]);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('resize', updateLayout);
+    };
+  }, [selectedPlanId, isStreaming]);
 
   // Start / Stop transmission
   const startStreaming = () => {
@@ -194,7 +198,7 @@ export default function Sender() {
   }, [fileData, plan]);
 
   return (
-    <div className="sender-page">
+    <div className={`sender-page ${isStreaming ? 'is-streaming' : ''}`}>
       <header className="sender-header">
         <div className="header-left">
           <a href="#/" className="back-link">← Home</a>
@@ -227,8 +231,9 @@ export default function Sender() {
                 disabled={isStreaming}
                 className={`btn-pill ${selectedPlanId === pKey ? 'active' : ''}`}
                 onClick={() => setSelectedPlanId(pKey)}
+                title={pKey === 'C' ? 'Plan C: 1×1 Single Giant QR Code' : `Plan ${pKey}`}
               >
-                {pKey}
+                {pKey === 'C' ? 'C (1×1 Big)' : pKey}
               </button>
             ))}
           </div>

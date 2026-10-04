@@ -259,13 +259,37 @@ body {
   align-items: center;
   justify-content: center;
   background: #000000;
-  padding: 1rem;
+  padding: 0.25rem;
   overflow: hidden;
 }
 
 .qr-canvas {
   background: #ffffff;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+/* Sender streaming optimizations to maximize QR size */
+.sender-page.is-streaming .brightness-reminder {
+  display: none;
+}
+
+.sender-page.is-streaming .sender-header {
+  padding: 0.35rem 1rem;
+}
+
+.sender-page.is-streaming .sender-controls {
+  padding: 0.35rem 1rem;
+  gap: 0.5rem;
+}
+
+.sender-page.is-streaming .stats-bar {
+  padding: 0.3rem 1rem;
+  font-size: 0.82rem;
+}
+
+.sender-page.is-streaming .sender-calibration-banner {
+  font-size: 1.1rem;
+  padding: 0.3rem 0.5rem;
 }
 
 /* Receiver Page */
@@ -551,6 +575,78 @@ body {
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-all;
+}
+
+/* HUD Download Banner & Large Action Buttons */
+.hud-download-banner {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.btn-hud-download {
+  flex: 1;
+  padding: 0.85rem 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  background: #00ff66;
+  color: #000000;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(0, 255, 102, 0.4);
+}
+
+.btn-hud-download:hover {
+  background: #10b981;
+}
+
+.btn-hud-copy {
+  padding: 0.85rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: #1e293b;
+  color: #f1f5f9;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-hud-copy:hover {
+  background: #334155;
+  color: #00f0ff;
+}
+
+.btn-save-large {
+  flex: 1;
+  padding: 0.9rem 1.25rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  background: #00ff66;
+  color: #000000;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(0, 255, 102, 0.4);
+}
+
+.btn-save-large:hover {
+  background: #10b981;
+}
+
+.btn-top-download {
+  background: #00ff66 !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 0 12px rgba(0, 255, 102, 0.5);
+}
+
+.verification-card-viewport {
+  margin: 0.75rem 1.25rem;
+  max-width: 540px;
+  margin-left: auto;
+  margin-right: auto;
+  width: calc(100% - 2.5rem);
 }
 
 .btn-retry {

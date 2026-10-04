@@ -478,6 +478,13 @@ export default function Receiver() {
   const outputFilename = isTxtOrBin ? 'lumenpipe-demo.txt' : `lumenpipe-demo.${resultData.sniff.ext}`;
   const outputMime = outputFilename.endsWith('.txt') ? 'text/plain' : (resultData?.sniff?.mime || 'text/plain');
 
+  // Derive file size for HUD
+  const displayFileSize = resultData
+    ? `${resultData.bytes.length.toLocaleString()} B`
+    : decoderRef.current?.compressedLen
+    ? `~${decoderRef.current.compressedLen.toLocaleString()} B`
+    : (stats.K > 0 ? `~${(stats.K * 240).toLocaleString()} B` : '—');
+
   const handleSave = () => {
     if (!resultData?.bytes) return;
     saveFile(resultData.bytes, outputFilename, outputMime);
@@ -512,66 +519,7 @@ export default function Receiver() {
         </div>
       )}
 
-      {/* Inline Verification Card per Task 1 & Task 2 */}
-      {hudState === 'COMPLETE' && resultData && (
-        <div ref={resultCardRef} className="result-card verification-card">
-          <div className="result-header">
-            <span className="result-badge-success">✓ CRC32 VERIFIED</span>
-            <span className="result-crc">CRC32: 0x{resultData.crcHex}</span>
-          </div>
-
-          <div className="verification-details">
-            <div className="verification-row">
-              <span className="verification-label">File:</span>
-              <strong className="verification-value">{outputFilename}</strong>
-            </div>
-            <div className="verification-row">
-              <span className="verification-label">Size:</span>
-              <strong className="verification-value">{resultData.bytes.length.toLocaleString()} bytes</strong>
-            </div>
-            <div className="verification-row">
-              <span className="verification-label">Type:</span>
-              <span className="verification-value">{outputMime}</span>
-            </div>
-          </div>
-
-          <div className="verification-preview-block">
-            <div className="verification-preview-header">
-              <span>Decoded UTF-8 Text (first ~280 bytes):</span>
-              <button
-                type="button"
-                className="btn-clipboard"
-                onClick={copyToClipboard}
-              >
-                {copiedContent ? '✓ Copied!' : '📋 Copy to clipboard'}
-              </button>
-            </div>
-            <pre className="verification-preview">
-              {previewText}
-            </pre>
-          </div>
-
-          {resultData.sniff.isImage && blobUrl && (
-            <div className="result-image-wrapper">
-              <img src={blobUrl} alt="Received preview" className="result-preview-img" />
-            </div>
-          )}
-
-          <div className="result-actions">
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleSave}
-            >
-              📥 Download File
-            </button>
-            <button className="btn btn-secondary" onClick={resetAll}>
-              New Transfer
-            </button>
-          </div>
-        </div>
-      )}
-
+      {/* Receiver Controls with Prominent Download Button on COMPLETE */}
       <div className="receiver-controls">
         <div className="control-group">
           <label>Grid Mode:</label>
@@ -594,7 +542,15 @@ export default function Receiver() {
         </div>
 
         <div className="control-actions">
-          {!isScanningRef.current ? (
+          {hudState === 'COMPLETE' && resultData ? (
+            <button
+              type="button"
+              className="btn btn-primary btn-top-download"
+              onClick={handleSave}
+            >
+              📥 Download File
+            </button>
+          ) : !isScanningRef.current ? (
             <button className="btn btn-primary" onClick={startCamera}>
               Start Scanner
             </button>
@@ -607,55 +563,120 @@ export default function Receiver() {
             {copiedStats ? 'Copied!' : 'Copy stats'}
           </button>
           <button className="btn btn-secondary" onClick={resetAll}>
-            Reset
+            {hudState === 'COMPLETE' ? 'New Transfer' : 'Reset'}
           </button>
         </div>
       </div>
 
-      <div className="video-viewport">
-        <video
-          ref={videoRef}
-          className="camera-video"
-          playsInline
-          muted
-          autoPlay
-        />
+      {/* Main Viewport Area: Shows Verification Card on COMPLETE, or Live Camera Stream while scanning */}
+      {hudState === 'COMPLETE' && resultData ? (
+        <div ref={resultCardRef} className="result-card verification-card verification-card-viewport">
+          <div className="result-header">
+            <span className="result-badge-success">✓ CRC32 VERIFIED</span>
+            <span className="result-crc">CRC32: 0x{resultData.crcHex}</span>
+          </div>
 
-        {overlayGeometry && videoRef.current && (
-          <svg
-            className="camera-overlay"
-            viewBox={`0 0 ${videoRef.current.videoWidth} ${videoRef.current.videoHeight}`}
-          >
-            {/* Central square crop guide */}
-            <rect
-              x={overlayGeometry.centralSquare.x}
-              y={overlayGeometry.centralSquare.y}
-              width={overlayGeometry.centralSquare.width}
-              height={overlayGeometry.centralSquare.height}
-              fill="none"
-              stroke="#ffffff"
-              strokeWidth="2"
-              strokeDasharray="6 6"
-              opacity="0.6"
-            />
-            {/* Individual cell rectangles with green/red feedback */}
-            {overlayGeometry.cells.map((cell, idx) => (
+          <div className="verification-details">
+            <div className="verification-row">
+              <span className="verification-label">File:</span>
+              <strong className="verification-value">{outputFilename}</strong>
+            </div>
+            <div className="verification-row">
+              <span className="verification-label">Size:</span>
+              <strong className="verification-value">{resultData.bytes.length.toLocaleString()} bytes</strong>
+            </div>
+            <div className="verification-row">
+              <span className="verification-label">Type:</span>
+              <span className="verification-value">{outputMime}</span>
+            </div>
+            <div className="verification-row">
+              <span className="verification-label">Time:</span>
+              <span className="verification-value">{stats.elapsedSeconds}s</span>
+            </div>
+          </div>
+
+          <div className="verification-preview-block">
+            <div className="verification-preview-header">
+              <span>Decoded UTF-8 Text Preview (first ~280 bytes):</span>
+              <button
+                type="button"
+                className="btn-clipboard"
+                onClick={copyToClipboard}
+              >
+                {copiedContent ? '✓ Copied!' : '📋 Copy to clipboard'}
+              </button>
+            </div>
+            <pre className="verification-preview">
+              {previewText}
+            </pre>
+          </div>
+
+          {resultData.sniff.isImage && blobUrl && (
+            <div className="result-image-wrapper">
+              <img src={blobUrl} alt="Received preview" className="result-preview-img" />
+            </div>
+          )}
+
+          <div className="result-actions">
+            <button
+              type="button"
+              className="btn btn-primary btn-save-large"
+              onClick={handleSave}
+            >
+              📥 Download File ({outputFilename})
+            </button>
+            <button className="btn btn-secondary" onClick={resetAll}>
+              New Transfer
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="video-viewport">
+          <video
+            ref={videoRef}
+            className="camera-video"
+            playsInline
+            muted
+            autoPlay
+          />
+
+          {overlayGeometry && videoRef.current && (
+            <svg
+              className="camera-overlay"
+              viewBox={`0 0 ${videoRef.current.videoWidth} ${videoRef.current.videoHeight}`}
+            >
+              {/* Central square crop guide */}
               <rect
-                key={idx}
-                x={cell.x}
-                y={cell.y}
-                width={cell.width}
-                height={cell.height}
+                x={overlayGeometry.centralSquare.x}
+                y={overlayGeometry.centralSquare.y}
+                width={overlayGeometry.centralSquare.width}
+                height={overlayGeometry.centralSquare.height}
                 fill="none"
-                stroke={activeCellMask[idx] ? '#00ff66' : '#ff3366'}
-                strokeWidth={activeCellMask[idx] ? '3' : '2'}
-                opacity={activeCellMask[idx] ? '0.9' : '0.5'}
+                stroke="#ffffff"
+                strokeWidth="2"
+                strokeDasharray="6 6"
+                opacity="0.6"
               />
-            ))}
-          </svg>
-        )}
-      </div>
+              {/* Individual cell rectangles with green/red feedback */}
+              {overlayGeometry.cells.map((cell, idx) => (
+                <rect
+                  key={idx}
+                  x={cell.x}
+                  y={cell.y}
+                  width={cell.width}
+                  height={cell.height}
+                  fill="none"
+                  stroke={activeCellMask[idx] ? '#00ff66' : '#ff3366'}
+                  strokeWidth={activeCellMask[idx] ? '3' : '2'}
+                  opacity={activeCellMask[idx] ? '0.9' : '0.5'}
+                />
+              ))}
+            </svg>
+          )}
+        </div>
+      )}
 
+      {/* HUD Panel with File Size and Download Bar */}
       <div className="hud-panel">
         <div className="hud-progress-container">
           <div
@@ -664,11 +685,30 @@ export default function Receiver() {
           />
         </div>
 
+        {hudState === 'COMPLETE' && resultData && (
+          <div className="hud-download-banner">
+            <button
+              type="button"
+              className="btn btn-primary btn-hud-download"
+              onClick={handleSave}
+            >
+              📥 Download File ({outputFilename} · {resultData.bytes.length.toLocaleString()} B)
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-hud-copy"
+              onClick={copyToClipboard}
+            >
+              {copiedContent ? '✓ Copied' : '📋 Copy Text'}
+            </button>
+          </div>
+        )}
+
         <div className="hud-grid">
           <div className="hud-item">
-            <span className="hud-label">Camera</span>
+            <span className="hud-label">File Size</span>
             <span className="hud-value">
-              {deliveredSettings.width ? `${deliveredSettings.width}×${deliveredSettings.height} @ ${deliveredSettings.frameRate}fps` : '—'}
+              <strong>{displayFileSize}</strong>
             </span>
           </div>
 
@@ -676,6 +716,20 @@ export default function Receiver() {
             <span className="hud-label">Rank / K</span>
             <span className="hud-value">
               <strong>{stats.rank}</strong> / {stats.K || '—'} ({stats.progressPercent}%)
+            </span>
+          </div>
+
+          <div className="hud-item">
+            <span className="hud-label">Status</span>
+            <span className="hud-value" style={{ color: hudState === 'COMPLETE' ? '#00ff66' : undefined }}>
+              <strong>{hudState}</strong>
+            </span>
+          </div>
+
+          <div className="hud-item">
+            <span className="hud-label">Camera</span>
+            <span className="hud-value">
+              {deliveredSettings.width ? `${deliveredSettings.width}×${deliveredSettings.height} @ ${deliveredSettings.frameRate}fps` : '—'}
             </span>
           </div>
 
