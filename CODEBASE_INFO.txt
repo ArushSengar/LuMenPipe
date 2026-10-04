@@ -60,6 +60,18 @@ LuMenPipe/
 ├── package.json                 # Scripts: dev, build, preview, test; dependencies
 ├── vite.config.js               # Vite config with React plugin and VitePWA setup
 ├── dist/                        # Production build output (index.html, JS/CSS, sw.js)
+├── demo_files/                  # Calibrated test payloads across types & sizes + runbook
+│   ├── 01_quick_badge.png       # 343 B color PNG icon (<0.5s transfer, K=2)
+│   ├── 02_mission_brief.txt     # 1.5 KB air-gap briefing note (~1.0s, K=3)
+│   ├── 03_sensor_telemetry.json # 8.2 KB IoT multi-sensor JSON (~1.5s, K=6)
+│   ├── 04_cargo_manifest.csv    # 15.4 KB tabular cargo tracking table (~3.0s, K=14)
+│   ├── 05_security_audit.pdf    # 18.8 KB valid PDF 1.4 report (~4.5s, K=22)
+│   ├── 06_technical_whitepaper.md # 14.1 KB technical whitepaper (~5.0s, K=18)
+│   ├── 07_optical_photo.jpg     # 53.1 KB color JPEG photo (~15s, K=90)
+│   ├── 08_firmware_bundle.zip   # 40.5 KB valid PKZip archive (~15s, K=80)
+│   ├── 09_satellite_imagery.png # 121 KB high-resolution PNG image (~35s, K=240)
+│   ├── 10_stress_test_log.json  # 145 KB high-volume stress test dataset (~45s, K=340)
+│   └── README.md                # Test runbook & benchmarking matrix
 │
 ├── src/
 │   ├── main.jsx                 # React root mount (StrictMode)
