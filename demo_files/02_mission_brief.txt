@@ -1,0 +1,29 @@
+================================================================================
+LUMENPIPE AIR-GAPPED TRANSMISSION BRIEFING
+================================================================================
+CLASSIFICATION: UNRESTRICTED / EVALUATION DEMO
+PROTOCOL:       Luby Transform (LT) Fountain Code over Simplex Optical QR
+CHANNEL:        Electromagnetic Visual Light Diode (Zero RF)
+DATE/TIME:      2026-10-04T10:36:40.711Z
+
+1. SYSTEM INTEGRITY SIGN-OFF
+   - Data Diode: Strictly unidirectional (Transmit -> Receive only)
+   - RF Emissions: 0.000 dBm (Zero Wi-Fi, Zero Bluetooth, Zero NFC)
+   - Reception Model: Broadcast to unlimited concurrent listeners
+   - Fountain Distribution: Robust Soliton (c=0.05, delta=0.5)
+
+2. DEPLOYMENT INSTRUCTIONS
+   - Step A: Verify screen brightness is set to 100% on the transmitter.
+   - Step B: Align receiver camera reticle over the central crop zone.
+   - Step C: As droplets are collected, incremental Gaussian elimination
+             assembles the exact payload in phone memory.
+   - Step D: Once rank reaches K, CRC-32 checksum is verified and
+             the file download is triggered automatically.
+
+3. CRYPTOGRAPHIC INTEGRITY
+   - File Integrity: 32-bit CRC verified on reassembly.
+   - Zero False Acceptance: Droplets failing checksum are discarded.
+   - Late Joiners: Reconstruct cleanly from any arbitrary starting frame.
+
+Authenticated by LumenPipe Optical Controller.
+================================================================================

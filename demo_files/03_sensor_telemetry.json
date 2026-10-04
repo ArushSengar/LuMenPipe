@@ -1,0 +1,289 @@
+{
+  "station": "LUMENPIPE-OPTIC-BASE-01",
+  "timestamp": "2026-10-04T10:36:40.712Z",
+  "diode_status": "ACTIVE_SIMPLEX_BROADCAST",
+  "optical_band": "400nm - 700nm (Visible Light)",
+  "rf_emission_detection": "NONE (Complete Isolation)",
+  "nodes": [
+    {
+      "id": "SENSOR-NODE-001",
+      "ambient_lux": 726,
+      "temperature_c": 21.5,
+      "humidity_percent": 45,
+      "irradiance_mw_cm2": 0.42,
+      "checksum": "0x5FF95BB5",
+      "optical_link_quality": "OPTIMAL",
+      "last_calibration_epoch": 1791110200713
+    },
+    {
+      "id": "SENSOR-NODE-002",
+      "ambient_lux": 557,
+      "temperature_c": 21.85,
+      "humidity_percent": 45.2,
+      "irradiance_mw_cm2": 0.435,
+      "checksum": "0xE1363730",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791106600713
+    },
+    {
+      "id": "SENSOR-NODE-003",
+      "ambient_lux": 593,
+      "temperature_c": 22.2,
+      "humidity_percent": 45.4,
+      "irradiance_mw_cm2": 0.45,
+      "checksum": "0x5E61BFE8",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791103000713
+    },
+    {
+      "id": "SENSOR-NODE-004",
+      "ambient_lux": 727,
+      "temperature_c": 22.55,
+      "humidity_percent": 45.6,
+      "irradiance_mw_cm2": 0.465,
+      "checksum": "0x92B4583E",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791099400713
+    },
+    {
+      "id": "SENSOR-NODE-005",
+      "ambient_lux": 748,
+      "temperature_c": 22.9,
+      "humidity_percent": 45.8,
+      "irradiance_mw_cm2": 0.48,
+      "checksum": "0xD2D51152",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791095800713
+    },
+    {
+      "id": "SENSOR-NODE-006",
+      "ambient_lux": 701,
+      "temperature_c": 23.25,
+      "humidity_percent": 46,
+      "irradiance_mw_cm2": 0.495,
+      "checksum": "0x29616685",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791092200713
+    },
+    {
+      "id": "SENSOR-NODE-007",
+      "ambient_lux": 565,
+      "temperature_c": 23.6,
+      "humidity_percent": 46.2,
+      "irradiance_mw_cm2": 0.51,
+      "checksum": "0xA665C944",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791088600713
+    },
+    {
+      "id": "SENSOR-NODE-008",
+      "ambient_lux": 720,
+      "temperature_c": 23.95,
+      "humidity_percent": 46.4,
+      "irradiance_mw_cm2": 0.525,
+      "checksum": "0x4E366649",
+      "optical_link_quality": "OPTIMAL",
+      "last_calibration_epoch": 1791085000713
+    },
+    {
+      "id": "SENSOR-NODE-009",
+      "ambient_lux": 578,
+      "temperature_c": 24.3,
+      "humidity_percent": 46.6,
+      "irradiance_mw_cm2": 0.54,
+      "checksum": "0x928D35CE",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791081400713
+    },
+    {
+      "id": "SENSOR-NODE-010",
+      "ambient_lux": 654,
+      "temperature_c": 24.65,
+      "humidity_percent": 46.8,
+      "irradiance_mw_cm2": 0.555,
+      "checksum": "0xF7AB41D7",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791077800713
+    },
+    {
+      "id": "SENSOR-NODE-011",
+      "ambient_lux": 545,
+      "temperature_c": 25,
+      "humidity_percent": 47,
+      "irradiance_mw_cm2": 0.57,
+      "checksum": "0x61FCC11F",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791074200713
+    },
+    {
+      "id": "SENSOR-NODE-012",
+      "ambient_lux": 619,
+      "temperature_c": 25.35,
+      "humidity_percent": 47.2,
+      "irradiance_mw_cm2": 0.585,
+      "checksum": "0xE44B8BBF",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791070600713
+    },
+    {
+      "id": "SENSOR-NODE-013",
+      "ambient_lux": 715,
+      "temperature_c": 25.7,
+      "humidity_percent": 47.4,
+      "irradiance_mw_cm2": 0.6,
+      "checksum": "0x01F7AE44",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791067000713
+    },
+    {
+      "id": "SENSOR-NODE-014",
+      "ambient_lux": 714,
+      "temperature_c": 26.05,
+      "humidity_percent": 47.6,
+      "irradiance_mw_cm2": 0.615,
+      "checksum": "0xB4CBF6E6",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791063400713
+    },
+    {
+      "id": "SENSOR-NODE-015",
+      "ambient_lux": 637,
+      "temperature_c": 26.4,
+      "humidity_percent": 47.8,
+      "irradiance_mw_cm2": 0.63,
+      "checksum": "0x30F3BFE6",
+      "optical_link_quality": "OPTIMAL",
+      "last_calibration_epoch": 1791059800713
+    },
+    {
+      "id": "SENSOR-NODE-016",
+      "ambient_lux": 671,
+      "temperature_c": 26.75,
+      "humidity_percent": 48,
+      "irradiance_mw_cm2": 0.645,
+      "checksum": "0xEBCD0481",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791056200713
+    },
+    {
+      "id": "SENSOR-NODE-017",
+      "ambient_lux": 593,
+      "temperature_c": 27.1,
+      "humidity_percent": 48.2,
+      "irradiance_mw_cm2": 0.66,
+      "checksum": "0x41047FBF",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791052600713
+    },
+    {
+      "id": "SENSOR-NODE-018",
+      "ambient_lux": 695,
+      "temperature_c": 27.45,
+      "humidity_percent": 48.4,
+      "irradiance_mw_cm2": 0.675,
+      "checksum": "0xE2C8A621",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791049000713
+    },
+    {
+      "id": "SENSOR-NODE-019",
+      "ambient_lux": 618,
+      "temperature_c": 27.8,
+      "humidity_percent": 48.6,
+      "irradiance_mw_cm2": 0.69,
+      "checksum": "0xCAAEBC98",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791045400713
+    },
+    {
+      "id": "SENSOR-NODE-020",
+      "ambient_lux": 535,
+      "temperature_c": 28.15,
+      "humidity_percent": 48.8,
+      "irradiance_mw_cm2": 0.705,
+      "checksum": "0xDB96863B",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791041800713
+    },
+    {
+      "id": "SENSOR-NODE-021",
+      "ambient_lux": 649,
+      "temperature_c": 28.5,
+      "humidity_percent": 49,
+      "irradiance_mw_cm2": 0.72,
+      "checksum": "0xDD54FD04",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791038200713
+    },
+    {
+      "id": "SENSOR-NODE-022",
+      "ambient_lux": 636,
+      "temperature_c": 28.85,
+      "humidity_percent": 49.2,
+      "irradiance_mw_cm2": 0.735,
+      "checksum": "0x1F103D68",
+      "optical_link_quality": "OPTIMAL",
+      "last_calibration_epoch": 1791034600713
+    },
+    {
+      "id": "SENSOR-NODE-023",
+      "ambient_lux": 643,
+      "temperature_c": 29.2,
+      "humidity_percent": 49.4,
+      "irradiance_mw_cm2": 0.75,
+      "checksum": "0x8F797FDB",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791031000713
+    },
+    {
+      "id": "SENSOR-NODE-024",
+      "ambient_lux": 686,
+      "temperature_c": 29.55,
+      "humidity_percent": 49.6,
+      "irradiance_mw_cm2": 0.765,
+      "checksum": "0x40B4DCCC",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791027400713
+    },
+    {
+      "id": "SENSOR-NODE-025",
+      "ambient_lux": 596,
+      "temperature_c": 29.9,
+      "humidity_percent": 49.8,
+      "irradiance_mw_cm2": 0.78,
+      "checksum": "0x69A8D0CD",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791023800713
+    },
+    {
+      "id": "SENSOR-NODE-026",
+      "ambient_lux": 718,
+      "temperature_c": 30.25,
+      "humidity_percent": 50,
+      "irradiance_mw_cm2": 0.795,
+      "checksum": "0x53DBADDF",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791020200713
+    },
+    {
+      "id": "SENSOR-NODE-027",
+      "ambient_lux": 639,
+      "temperature_c": 30.6,
+      "humidity_percent": 50.2,
+      "irradiance_mw_cm2": 0.81,
+      "checksum": "0xC1BF6BD6",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791016600713
+    },
+    {
+      "id": "SENSOR-NODE-028",
+      "ambient_lux": 741,
+      "temperature_c": 30.95,
+      "humidity_percent": 50.4,
+      "irradiance_mw_cm2": 0.825,
+      "checksum": "0x91B96B64",
+      "optical_link_quality": "EXCELLENT",
+      "last_calibration_epoch": 1791013000713
+    }
+  ]
+}
