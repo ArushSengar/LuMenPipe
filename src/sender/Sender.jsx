@@ -250,6 +250,7 @@ Decoded cleanly via LumenPipe Optical Receiver.
   // Start / Stop transmission
   const startStreaming = () => {
     if (!fileData) return;
+    stopStreaming();
     updateLayout();
 
     const sid = Math.floor(Math.random() * 0x10000);
@@ -372,6 +373,9 @@ Decoded cleanly via LumenPipe Optical Receiver.
           <h2>Transmitter</h2>
         </div>
         <div className="header-badges">
+          <a href="#/receive" className="btn btn-secondary btn-header-switch" title="Switch to Receiver">
+            📷 Scanner
+          </a>
           <span className="header-badge">
             Plan: <strong>{plan.id} ({plan.grid})</strong>
           </span>

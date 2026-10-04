@@ -84,8 +84,7 @@ export class Decoder {
     }
 
     const rowPayload = new Uint32Array(this.payloadWords);
-    const pktPayloadU32 = new Uint32Array(parsed.payload.buffer, parsed.payload.byteOffset, this.payloadWords);
-    rowPayload.set(pktPayloadU32);
+    new Uint8Array(rowPayload.buffer).set(parsed.payload);
 
     // Incremental GF(2) reduction against pivot table
     while (true) {

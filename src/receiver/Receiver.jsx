@@ -148,7 +148,17 @@ export default function Receiver() {
         }
       };
 
-      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      let mediaStream;
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (camErr) {
+        if (camErr.name === 'OverconstrainedError' || camErr.name === 'ConstraintNotSatisfiedError') {
+          // Graceful fallback for webcams with limited resolution
+          mediaStream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
+        } else {
+          throw camErr;
+        }
+      }
       streamRef.current = mediaStream;
 
       if (videoRef.current) {
@@ -536,10 +546,17 @@ export default function Receiver() {
   return (
     <div className="receiver-page">
       <header className="receiver-header">
-        <a href="#/" className="back-link">← Home</a>
-        <h2>Receiver</h2>
-        <div className={`status-pill status-${hudState.toLowerCase()}`}>
-          {hudState}
+        <div className="header-left">
+          <a href="#/" className="back-link">← Home</a>
+          <h2>Receiver</h2>
+        </div>
+        <div className="header-actions">
+          <a href="#/send" className="btn btn-secondary btn-header-switch" title="Switch to Transmitter">
+            ⚡ Transmitter
+          </a>
+          <div className={`status-pill status-${hudState.toLowerCase()}`}>
+            {hudState}
+          </div>
         </div>
       </header>
 
@@ -586,13 +603,14 @@ export default function Receiver() {
 
         <div className="control-actions">
           {resultData ? (
-            <button
-              type="button"
+            <a
+              href={blobUrl || '#'}
+              download={outputFilename}
               className="btn btn-primary btn-top-download"
               onClick={handleSave}
             >
               📥 Download File
-            </button>
+            </a>
           ) : !isScanningRef.current ? (
             <button className="btn btn-primary" onClick={startCamera}>
               Start Scanner
@@ -661,13 +679,14 @@ export default function Receiver() {
           )}
 
           <div className="result-actions">
-            <button
-              type="button"
+            <a
+              href={blobUrl || '#'}
+              download={outputFilename}
               className="btn btn-primary btn-save-large"
               onClick={handleSave}
             >
               📥 Download File ({outputFilename})
-            </button>
+            </a>
             <button className="btn btn-secondary" onClick={resetAll}>
               New Transfer
             </button>
@@ -736,13 +755,14 @@ export default function Receiver() {
 
         {resultData && (
           <div className="hud-download-banner">
-            <button
-              type="button"
+            <a
+              href={blobUrl || '#'}
+              download={outputFilename}
               className="btn btn-primary btn-hud-download"
               onClick={handleSave}
             >
               📥 Download File ({outputFilename} · {formatBytes(resultData.bytes.length)})
-            </button>
+            </a>
             <button
               type="button"
               className="btn btn-secondary btn-hud-copy"
