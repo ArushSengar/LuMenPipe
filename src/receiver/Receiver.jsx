@@ -491,17 +491,42 @@ export default function Receiver() {
     }).catch(() => {});
   };
 
-  // Derive output filename and MIME with lumenpipe-demo.txt fallback
-  const isTxtOrBin = !resultData?.sniff?.ext || resultData?.sniff?.ext === 'bin';
-  const outputFilename = isTxtOrBin ? 'lumenpipe-demo.txt' : `lumenpipe-demo.${resultData.sniff.ext}`;
-  const outputMime = outputFilename.endsWith('.txt') ? 'text/plain' : (resultData?.sniff?.mime || 'text/plain');
+  // Format bytes helper for human-readable display
+  const formatBytes = (b) => {
+    if (b == null || isNaN(b) || b === 0) return '0 B';
+    if (b < 1024) return `${b} B`;
+    if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+    return `${(b / (1024 * 1024)).toFixed(2)} MB`;
+  };
 
-  // Derive file size for HUD
+  // Derive output filename and MIME with intelligent sniffing for images, JSON, MD, and text
+  const isTxtOrBin = !resultData?.sniff?.ext || resultData?.sniff?.ext === 'bin';
+  let detectedExt = resultData?.sniff?.ext;
+  let detectedMime = resultData?.sniff?.mime;
+
+  if (isTxtOrBin && previewText) {
+    const trimmed = previewText.trim();
+    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+      detectedExt = 'json';
+      detectedMime = 'application/json';
+    } else if (trimmed.startsWith('#') || trimmed.includes('## ') || trimmed.includes('### ')) {
+      detectedExt = 'md';
+      detectedMime = 'text/markdown';
+    } else {
+      detectedExt = 'txt';
+      detectedMime = 'text/plain';
+    }
+  }
+
+  const outputFilename = `lumenpipe-demo.${detectedExt || 'txt'}`;
+  const outputMime = detectedMime || 'application/octet-stream';
+
+  // Derive human-readable file size for HUD
   const displayFileSize = resultData
-    ? `${resultData.bytes.length.toLocaleString()} B`
+    ? formatBytes(resultData.bytes.length)
     : decoderRef.current?.compressedLen
-    ? `~${decoderRef.current.compressedLen.toLocaleString()} B`
-    : (stats.K > 0 ? `~${(stats.K * 240).toLocaleString()} B` : '—');
+    ? `~${formatBytes(decoderRef.current.compressedLen)}`
+    : (stats.K > 0 ? `~${formatBytes(stats.K * 240)}` : '—');
 
   const handleSave = () => {
     if (!resultData?.bytes) return;
@@ -696,6 +721,12 @@ export default function Receiver() {
 
       {/* HUD Panel with File Size and Download Bar */}
       <div className="hud-panel">
+        {stats.progressPercent >= 90 && !resultData && stats.K > 0 && (
+          <div className="hud-near-complete-banner">
+            ⚡ Almost complete ({stats.rank}/{stats.K} chunks)! Keep phone camera steady on the QR code...
+          </div>
+        )}
+
         <div className="hud-progress-container">
           <div
             className="hud-progress-bar"
@@ -710,7 +741,7 @@ export default function Receiver() {
               className="btn btn-primary btn-hud-download"
               onClick={handleSave}
             >
-              📥 Download File ({outputFilename} · {resultData.bytes.length.toLocaleString()} B)
+              📥 Download File ({outputFilename} · {formatBytes(resultData.bytes.length)})
             </button>
             <button
               type="button"
