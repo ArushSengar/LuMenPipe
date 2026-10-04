@@ -1,0 +1,31 @@
+=== CLAUDE BRIEF v2: PROJECT LUMENPIPE ===
+EVENT: Vibeathon - AI Powered Development (Galgotias University). Round 2: 8-hour offline build, then a live demo to judges.
+
+WHAT IT IS
+A one-way optical file transfer. A laptop screen shows a grid of QR codes ("droplets"). Phone cameras read them in a web page and rebuild the file using LT fountain codes. There is no radio on the data channel, no pairing and no feedback to the sender.
+
+WHY IT IS INTERESTING (say only these things)
+1. No ACK/NACK: missed frames only cost time; any order; late joiners work.
+2. One stream serves every phone that can see the screen (each phone needs its own line of sight).
+3. The receiver is a web page: nothing to install; offline-capable once cached as a PWA.
+4. Integrity is verified (CRC32 + inflate). Confidentiality is NOT provided: anyone who can see the screen can read the stream.
+
+BUILD RULES (hackathon)
+- Built from scratch inside this repo during the event. Open-source libraries are allowed and must be disclosed. AI tools must be disclosed.
+- Every number in the README, the pitch and the HUD comes from a test or a live measurement.
+
+DEVICES
+OnePlus Nord CE 2 Lite and CMF Phone 2 Pro (Android). Browser assumed Chrome [UNCONFIRMED]. Laptop screen is the transmitter [UNCONFIRMED: could be a monitor or projector].
+
+STACK (pinned in the spec)
+React 19 + Vite 8 (JavaScript), plain CSS, hash routing, vite-plugin-pwa, qrcode 1.5.4, jsqr 1.4.0, pako 3.0.2. Tests with node:test. No backend. No AI model inside the product.
+
+REALISTIC PERFORMANCE EXPECTATIONS (estimates, not measurements)
+Roughly 1.5 to 7 KB/s per phone with the default 2x2 grid; a 30 KB file in roughly 5 to 25 seconds. Close range (about 0.25 to 0.30 m at 1080p capture) with the phone on a stand. These are estimates until the HUD says otherwise.
+
+NEVER CLAIM
+120 KB/s, 200 KB/s, 1.2 MB/s, "secure", "encrypted", "interception-proof", "AI adaptive bit-rate", "Web Worker decoders", "zero internet" without the cached-PWA caveat, or "this works" before it has been tested on the real phones.
+
+DOCUMENTS
+CLAUDE.md = non-negotiable rules. MVP_Architecture_Specification.md = the contract. PROMPTS.md = the stages.
+==================================================

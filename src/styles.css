@@ -1,0 +1,92 @@
+/* LumenPipe — theme from spec §7
+   background: #0a0f1d | panel: #121829 | cyan: #00f0ff | green: #00ff66 | text: #f1f5f9 | muted: #64748b */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background: #0a0f1d;
+  color: #f1f5f9;
+  font-family: system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Landing */
+.landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.landing-title {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #00f0ff;
+  letter-spacing: -0.02em;
+}
+
+.landing-desc {
+  max-width: 480px;
+  color: #64748b;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.landing-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  padding: 0.85rem 2.5rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s;
+  min-height: 44px;
+}
+
+.btn:hover { opacity: 0.85; }
+
+.btn-primary {
+  background: #00f0ff;
+  color: #0a0f1d;
+}
+
+.btn-secondary {
+  background: #121829;
+  color: #00f0ff;
+  border: 2px solid #00f0ff;
+}
+
+/* Placeholder screens */
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 1rem;
+  color: #64748b;
+}
+
+.placeholder h2 { color: #f1f5f9; }
