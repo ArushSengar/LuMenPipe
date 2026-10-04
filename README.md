@@ -35,10 +35,10 @@
 | ![Landing Portal](assets/landing_preview.png) | ![Transmitter UI](assets/transmitter_preview.png) | ![Live Broadcast](assets/broadcasting_stream.png) |
 | **Cyber Air-Gap Portal** | **File Telemetry & Presets** | **Animated Fountain Droplets** |
 
-| Receiver Scanner HUD | Verified Phone Reassembly | Real-Hardware Optical Test |
-|:---:|:---:|:---:|
-| ![Receiver HUD](assets/receiver_preview.png) | ![Phone Result Card](assets/phone_receiver_card.png) | ![Hardware Test](assets/hardware_demo.jpg) |
-| **Real-time Quad Crop & Stats** | **CRC32 Match & Auto Image Preview** | **Verified on Real Phone Camera** |
+| Receiver Scanner HUD | Real-Hardware Optical Test (CMF Phone 2 Pro) |
+|:---:|:---:|
+| ![Receiver HUD](assets/receiver_preview.png) | ![Hardware Test](assets/hardware_demo.jpg) |
+| **Real-time Camera Crop & Live Stats HUD** | **Verified 100% Rank Reassembly on Android Chrome** |
 
 ---
 
