@@ -1,10 +1,11 @@
-// src/receiver/Receiver.jsx — Camera scanner and decoder receiver screen (spec §6.8, prompt P6)
+// src/receiver/Receiver.jsx — Camera scanner, HUD, calibration & result card (spec §6.8, §6.9, prompts P6, P7b, P8)
 
 import React, { useState, useEffect, useRef } from 'react';
 import jsQR from 'jsqr';
 import { Decoder } from '../lib/decoder.js';
 import { getCropGeometry } from '../lib/crop.js';
 import { assembleFile } from '../lib/pipeline.js';
+import { sniffFileType } from '../lib/sniff.js';
 
 export default function Receiver() {
   const [isSecure, setIsSecure] = useState(true);
@@ -12,6 +13,8 @@ export default function Receiver() {
   const [hudState, setHudState] = useState('IDLE'); // IDLE, STARTING, SEARCHING, STREAMING, COMPLETE, FAILED
   const [failureReason, setFailureReason] = useState('');
   const [deliveredSettings, setDeliveredSettings] = useState({ width: 0, height: 0, frameRate: 0 });
+  const [copiedStats, setCopiedStats] = useState(false);
+
   const [stats, setStats] = useState({
     scanRoundsPerSec: 0,
     decodesPerSec: 0,
@@ -23,6 +26,9 @@ export default function Receiver() {
     elapsedSeconds: 0,
     progressPercent: 0
   });
+
+  const [resultData, setResultData] = useState(null); // { bytes, crcHex, sniff }
+  const [blobUrl, setBlobUrl] = useState(null);
 
   const [overlayGeometry, setOverlayGeometry] = useState(null);
   const [activeCellMask, setActiveCellMask] = useState({});
@@ -56,14 +62,18 @@ export default function Receiver() {
     cropCanvasRef.current = document.createElement('canvas');
     return () => {
       stopCamera();
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
+      }
     };
-  }, []);
+  }, [blobUrl]);
 
   const startCamera = async () => {
     if (hudState === 'STARTING' || isScanningRef.current) return;
     setHudState('STARTING');
     setFailureReason('');
     completionTimeRef.current = null;
+    clearResult();
 
     decoderRef.current.reset();
     scanRoundsCountRef.current = 0;
@@ -144,6 +154,33 @@ export default function Receiver() {
     if (hudState !== 'COMPLETE' && hudState !== 'FAILED') {
       setHudState('IDLE');
     }
+  };
+
+  const clearResult = () => {
+    if (blobUrl) {
+      URL.revokeObjectURL(blobUrl);
+      setBlobUrl(null);
+    }
+    setResultData(null);
+  };
+
+  const resetAll = () => {
+    stopCamera();
+    clearResult();
+    decoderRef.current.reset();
+    setHudState('IDLE');
+    setFailureReason('');
+    setStats({
+      scanRoundsPerSec: 0,
+      decodesPerSec: 0,
+      rank: 0,
+      K: 0,
+      accepted: 0,
+      dependent: 0,
+      jsqrMsPerCell: 0,
+      elapsedSeconds: 0,
+      progressPercent: 0
+    });
   };
 
   const scheduleNextFrame = () => {
@@ -259,9 +296,20 @@ export default function Receiver() {
       if (decoder.isDone) {
         if (completionTimeRef.current === null) {
           completionTimeRef.current = elapsedSec;
-          // Assemble file
+          // Assemble and verify file
           try {
-            assembleFile(decoder);
+            const fileBytes = assembleFile(decoder);
+            const crcHex = (decoder.crc32 >>> 0).toString(16).toUpperCase().padStart(8, '0');
+            const sniff = sniffFileType(fileBytes);
+            const blob = new Blob([fileBytes], { type: sniff.mime });
+            const url = URL.createObjectURL(blob);
+
+            setBlobUrl(url);
+            setResultData({
+              bytes: fileBytes,
+              crcHex,
+              sniff
+            });
             setHudState('COMPLETE');
           } catch (err) {
             setHudState('FAILED');
@@ -309,6 +357,15 @@ export default function Receiver() {
     }, 250);
   };
 
+  // Calibration P7b: Copy stats button
+  const copyStats = () => {
+    const line = `Grid: ${gridN}×${gridN} | ${deliveredSettings.width}×${deliveredSettings.height} @ ${deliveredSettings.frameRate}fps | decodes/s: ${stats.decodesPerSec} | jsQR: ${stats.jsqrMsPerCell}ms/cell | elapsed: ${stats.elapsedSeconds}s | rank/K: ${stats.rank}/${stats.K}`;
+    navigator.clipboard.writeText(line).then(() => {
+      setCopiedStats(true);
+      setTimeout(() => setCopiedStats(false), 2000);
+    }).catch(() => {});
+  };
+
   return (
     <div className="receiver-page">
       <header className="receiver-header">
@@ -328,6 +385,42 @@ export default function Receiver() {
       {failureReason && (
         <div className="alert alert-error">
           Transfer Failed: {failureReason}
+          <button className="btn-retry" onClick={resetAll}>Retry</button>
+        </div>
+      )}
+
+      {/* Result Card per spec §6.9 & prompt P8 */}
+      {hudState === 'COMPLETE' && resultData && (
+        <div className="result-card">
+          <div className="result-header">
+            <span className="result-badge-success">✓ CRC OK</span>
+            <span className="result-crc">CRC32: 0x{resultData.crcHex}</span>
+          </div>
+          <div className="result-details">
+            <div>Type: <strong>{resultData.sniff.ext.toUpperCase()}</strong> ({resultData.sniff.mime})</div>
+            <div>Size: <strong>{resultData.bytes.length.toLocaleString()} bytes</strong></div>
+          </div>
+
+          {resultData.sniff.isImage && blobUrl && (
+            <div className="result-image-wrapper">
+              <img src={blobUrl} alt="Received preview" className="result-preview-img" />
+            </div>
+          )}
+
+          <div className="result-actions">
+            {blobUrl && (
+              <a
+                href={blobUrl}
+                download={`lumenpipe_received.${resultData.sniff.ext}`}
+                className="btn btn-primary"
+              >
+                Save File
+              </a>
+            )}
+            <button className="btn btn-secondary" onClick={resetAll}>
+              New Transfer
+            </button>
+          </div>
         </div>
       )}
 
@@ -362,6 +455,12 @@ export default function Receiver() {
               Stop Scanner
             </button>
           )}
+          <button className="btn btn-secondary" onClick={copyStats}>
+            {copiedStats ? 'Copied!' : 'Copy stats'}
+          </button>
+          <button className="btn btn-secondary" onClick={resetAll}>
+            Reset
+          </button>
         </div>
       </div>
 

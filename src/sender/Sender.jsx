@@ -282,6 +282,10 @@ export default function Sender() {
         <span>Droplets Sent: <strong>{dropletsSent}</strong></span>
       </div>
 
+      <div className="sender-calibration-banner">
+        PLAN {plan.id} · {fps} FPS
+      </div>
+
       <div className="qr-viewport" ref={containerRef}>
         <canvas
           ref={canvasRef}
