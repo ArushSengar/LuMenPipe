@@ -56,6 +56,13 @@ export default function Receiver() {
   const cropCanvasRef = useRef(null);
   const hudTimerRef = useRef(null);
   const wakeLockRef = useRef(null);
+  const resultCardRef = useRef(null);
+
+  useEffect(() => {
+    if (hudState === 'COMPLETE' && resultCardRef.current) {
+      resultCardRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [hudState]);
 
   // High-frequency counters stored in refs (no setState inside the scan loop!)
   const scanRoundsCountRef = useRef(0);
@@ -507,7 +514,7 @@ export default function Receiver() {
 
       {/* Inline Verification Card per Task 1 & Task 2 */}
       {hudState === 'COMPLETE' && resultData && (
-        <div className="result-card verification-card">
+        <div ref={resultCardRef} className="result-card verification-card">
           <div className="result-header">
             <span className="result-badge-success">✓ CRC32 VERIFIED</span>
             <span className="result-crc">CRC32: 0x{resultData.crcHex}</span>
@@ -556,7 +563,7 @@ export default function Receiver() {
               className="btn btn-primary"
               onClick={handleSave}
             >
-              Save File
+              📥 Download File
             </button>
             <button className="btn btn-secondary" onClick={resetAll}>
               New Transfer
