@@ -12,7 +12,7 @@ describe('P6 — Crop geometry tests', () => {
   ];
 
   const gridNs = [1, 2, 3];
-  const paddingFraction = 0.12;
+  const paddingFraction = 0;
 
   for (const res of resolutions) {
     describe(`${res.name} (${res.width}×${res.height})`, () => {
@@ -45,27 +45,17 @@ describe('P6 — Crop geometry tests', () => {
             );
           }
 
-          // If N = 2, verify cells overlap each other only through the padding
+          // If N = 2, verify cells do not overlap
           if (N === 2) {
             const cell00 = cells[0]; // r=0, c=0
             const cell01 = cells[1]; // r=0, c=1
             const cell10 = cells[2]; // r=1, c=0
 
-            // With padding > 0, adjacent cells overlap
+            // With paddingFraction = 0, adjacent cells must not overlap
             const hOverlap = (cell00.x + cell00.width) - cell01.x;
             const vOverlap = (cell00.y + cell00.height) - cell10.y;
-            assert.ok(hOverlap > 0, 'Adjacent cells must overlap horizontally due to padding');
-            assert.ok(vOverlap > 0, 'Adjacent cells must overlap vertically due to padding');
-
-            // Without padding (paddingFraction = 0), cells do not overlap
-            const unpadded = getCropGeometry(res.width, res.height, 2, 0);
-            const u00 = unpadded.cells[0];
-            const u01 = unpadded.cells[1];
-            const u10 = unpadded.cells[2];
-            const uHOverlap = (u00.x + u00.width) - u01.x;
-            const uVOverlap = (u00.y + u00.height) - u10.y;
-            assert.equal(uHOverlap, 0, 'Unpadded cells must not overlap horizontally');
-            assert.equal(uVOverlap, 0, 'Unpadded cells must not overlap vertically');
+            assert.equal(hOverlap, 0, 'Adjacent cells must not overlap horizontally');
+            assert.equal(vOverlap, 0, 'Adjacent cells must not overlap vertically');
           }
         });
       }

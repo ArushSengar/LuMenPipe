@@ -257,7 +257,7 @@ export default function Receiver() {
       return;
     }
 
-    const { centralSquare, cells } = getCropGeometry(vw, vh, gridN, 0.12);
+    const { centralSquare, cells } = getCropGeometry(vw, vh, gridN, 0);
     const canvas = cropCanvasRef.current;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     const decoder = decoderRef.current;
@@ -404,7 +404,7 @@ export default function Receiver() {
           videoRef.current.videoWidth,
           videoRef.current.videoHeight,
           gridN,
-          0.12
+          0
         );
         setOverlayGeometry(geom);
       }

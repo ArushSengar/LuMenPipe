@@ -11,7 +11,7 @@
  *   cells: Array<{ x: number, y: number, width: number, height: number, row: number, col: number }>
  * }}
  */
-export function getCropGeometry(videoWidth, videoHeight, gridN, paddingFraction = 0.12) {
+export function getCropGeometry(videoWidth, videoHeight, gridN, paddingFraction = 0) {
   const squareSide = Math.min(videoWidth, videoHeight);
   const squareX = Math.floor((videoWidth - squareSide) / 2);
   const squareY = Math.floor((videoHeight - squareSide) / 2);
