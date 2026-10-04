@@ -69,6 +69,23 @@ Decoded cleanly via LumenPipe Optical Receiver.
     });
   };
 
+  const loadDemoImage = () => {
+    // Valid 48x48 colored PNG optical icon (343 bytes)
+    const base64Png = 'iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAABHklEQVR4AdXBuZHDUAxEwceptWDz58AAEQYyhQ+X66t08NBBdE82LyuNieZEc6I50dwfb1IZ7GXDOWuyeVk5oTI4y4Zz1GTzsnJAZfBuNpy9xAGVwSdUBntNNi8rG1UG32LD2UJsVBl8U2WwhdigMviFyuAV0Zx4oTL4pcrgGfFEZXAFlcEjojnxQGVwJZXBPaI5cUdlcEWVwS3RnGhONCeaE82J5kRzojnRnGhONCeaE3fYcK7IhnNLNCcesOFciQ3nHtGceMKGcwU2nEfECzacX7LhPCOaExvYcH7BhvOK2MiG8002nC0mm5eVnSqDT7Hh7CEOsOF8gg1nr8nmZeWEyuAsG85Rk83LyhtUBnvZcM6abF5WGhPNieZEc/8X70mDrH0lvQAAAABJRU5ErkJggg==';
+    const binaryString = atob(base64Png);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    setFileError('');
+    setFileWarning('');
+    setFileData({
+      name: 'lumenpipe-demo.png',
+      bytes,
+      originalSize: bytes.length
+    });
+  };
+
   // Pre-load verified 2 KB demo payload on mount for instant evaluation
   useEffect(() => {
     loadDemoPayload();
@@ -274,7 +291,16 @@ Decoded cleanly via LumenPipe Optical Receiver.
             disabled={isStreaming}
             title="Load 2 KB verified text demo payload for fast 1-2s transfer"
           >
-            📄 Load Demo (2 KB)
+            📄 Demo Text (2 KB)
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary btn-demo-load"
+            onClick={loadDemoImage}
+            disabled={isStreaming}
+            title="Load 343 B verified PNG image demo payload"
+          >
+            🖼️ Demo Image (PNG)
           </button>
           {fileData && (
             <span className="file-name-tag">
