@@ -1,0 +1,257 @@
+================================================================================
+LUMENPIPE — COMPLETE CODEBASE INFORMATION & ARCHITECTURE OVERVIEW
+================================================================================
+Generated: 2026-10-04 | Vibeathon Round 2 — Galgotias University
+
+--------------------------------------------------------------------------------
+1. PROJECT OVERVIEW & CORE CONCEPT
+--------------------------------------------------------------------------------
+LumenPipe is an air-gapped, one-way optical file broadcast system:
+- A laptop screen displays an animated N×N grid of high-speed QR "droplets".
+- Smartphone cameras in a browser web page read and decode them in real-time.
+- Luby Transform (LT) fountain codes reconstruct the original file incrementally.
+- Zero radio frequency (RF) is used on the data channel: no Wi-Fi, no Bluetooth,
+  no NFC, no pairing, no handshakes, and NO ACK/NACK (unidirectional).
+- Broadcast model: A single screen stream serves unlimited phones simultaneously
+  (each phone only needs line-of-sight to the screen).
+- Rateless & order-free: Droplets carry random linear XOR combinations of source
+  chunks. Droplets can arrive out of order; missed frames only cost time. Late
+  joiners can start reading at any point and still decode the complete file.
+- Integrity verified: Original file CRC32 is embedded in every droplet header.
+  After GF(2) elimination and pako.inflate, CRC32 is strictly verified.
+- Web-native PWA: No app store installation needed. Works offline once cached.
+
+--------------------------------------------------------------------------------
+2. EVENT CONTEXT & VERIFIED SCHEDULE (AUTHORITATIVE)
+--------------------------------------------------------------------------------
+Event: Vibeathon — AI Powered Development, Galgotias University (Round 2).
+Authoritative Schedule:
+  - 10:00 AM  Build officially started
+  - 12:00 PM  Evaluation Round 1 + Mentoring
+  - 01:30 PM  Lunch break (1 hour fixed)
+  - 03:30 PM  Evaluation Round 2 — FINAL (Live build + pitch) [HARD STOP]
+  - 05:00 PM  Final Results
+
+Build Rules:
+  - All application code written during event inside this repo.
+  - First skeleton commit: 80708ba (10:31:39 IST, post-10:00 AM start).
+  - Open-source dependencies and AI tools disclosed in DISCLOSURE.md.
+  - Every performance claim must come from a verified test or live measurement.
+
+--------------------------------------------------------------------------------
+3. TECH STACK & PINNED DEPENDENCIES
+--------------------------------------------------------------------------------
+- Framework: React 19.3.0 + Vite 8.3.2 (JavaScript, standard ESM)
+- Routing: Hash routing (`#/`, `#/send`, `#/receive`), no router library
+- Styling: Plain Vanilla CSS (spec §7 theme: dark mode, no Tailwind)
+- PWA Plugin: vite-plugin-pwa 2.0.0 (Workbox, autoUpdate service worker)
+- Core Libraries (Strictly Pinned):
+  * qrcode 1.5.4: High-speed QR module matrix generation
+  * jsqr 1.4.0: Pure-JS camera frame QR detection & decoding
+  * pako 3.0.2: Fast zlib Deflate/Inflate stream compression
+- Test Framework: Node.js built-in test runner (`node:test`, `node:assert/strict`)
+- No backend, no cloud database, no AI model inside the runtime product.
+
+--------------------------------------------------------------------------------
+4. DIRECTORY & FILE STRUCTURE
+--------------------------------------------------------------------------------
+LuMenPipe/
+├── index.html                   # HTML entry point, viewport, and PWA manifest link
+├── package.json                 # Scripts: dev, build, preview, test; dependencies
+├── vite.config.js               # Vite config with React plugin and VitePWA setup
+├── dist/                        # Production build output (index.html, JS/CSS, sw.js)
+│
+├── src/
+│   ├── main.jsx                 # React root mount (StrictMode)
+│   ├── App.jsx                  # Hash routing container (#/, #/send, #/receive)
+│   ├── Landing.jsx              # Landing page with mode selection & spec overview
+│   ├── ErrorBoundary.jsx        # Top-level React error boundary for runtime safety
+│   ├── styles.css               # Complete application styling (spec §7 design)
+│   │
+│   ├── sender/
+│   │   └── Sender.jsx           # Transmitter screen: file picker, plan/FPS selector,
+│   │                            # 100% brightness banner, rAF draw loop, canvas QR
+│   │
+│   ├── receiver/
+│   │   └── Receiver.jsx         # Receiver screen: camera stream, quadrant crop,
+│   │                            # jsQR scan loop, live HUD, overlay, Result Card
+│   │
+│   └── lib/
+│       ├── format.js            # Wire format: packHeader, unpackHeader, packDroplet,
+│       │                        # parseDroplet, splitChunks, joinChunks, crc32
+│       ├── lt.js                # Mulberry32 PRNG, Robust Soliton CDF, index selection
+│       ├── encoder.js           # LT fountain encoder: generates infinite droplet stream
+│       ├── decoder.js           # Incremental GF(2) Gaussian elimination decoder
+│       ├── pipeline.js          # prepareFile (deflate+CRC) and assembleFile (inflate+verify)
+│       ├── plans.js             # Downgrade ladder: Plans A, B, C definitions
+│       ├── qrdraw.js            # calculateGridLayout, pure renderCellRgba, canvas blit
+│       ├── crop.js              # getCropGeometry: central square and cell rectangles
+│       └── sniff.js             # sniffFileType: magic byte detection (PNG, JPG, PDF, ZIP)
+│
+├── test/
+│   ├── format.test.js           # T1, T1b, T2: wire format, CRC32, chunking tests
+│   ├── lt.test.js               # T3, T4: PRNG, Robust Soliton CDF, fountain overhead
+│   ├── codec.test.js            # T5, T6: GF(2) incremental solver, duplicate rejection
+│   ├── pipeline.test.js         # T7, T8, T12: round-trip, loss simulation (40%), corruption
+│   ├── qrdraw.test.js           # P5: integer pixel layout across viewports & DPRs
+│   ├── crop.test.js             # P6: quadrant crop boundaries and non-overlap tests
+│   ├── sniff.test.js            # P8: file type sniffing magic bytes
+│   ├── smoke.test.js            # T13: library smoke test (pako, qrcode, jsqr)
+│   └── synthetic.test.js        # P5b: synthetic camera tests (Tests A, B, C; 100% pass)
+│
+├── CLAUDE.md                    # Core repository invariants, rules, and report format
+├── CLAUDE_BRIEF.txt             # High-level event briefing & scope boundaries
+├── MVP_Architecture_Specification.md # Contract specification document (§1–§13)
+├── PROMPTS.md                   # Chronological stage-by-stage implementation prompts
+├── DISCLOSURE.md                # Hackathon AI, tool, and dependency disclosure
+└── README.md                    # Project README with honest measured results table
+
+--------------------------------------------------------------------------------
+5. MATHEMATICAL & CODEC ARCHITECTURE
+--------------------------------------------------------------------------------
+A. Wire Format (Spec §4, src/lib/format.js):
+   - Every packet starts with a 16-byte Little-Endian Header:
+     [0..1]   sid            (uint16): Random Session ID
+     [2..3]   seq            (uint16): Droplet sequence counter (for stats)
+     [4..5]   K              (uint16): Total source chunks count
+     [6..7]   chunkSize      (uint16): Chunk size in bytes (160 or 240)
+     [8..11]  compressedLen  (uint32): Exact byte length of deflated payload
+     [12..15] crc32          (uint32): IEEE CRC-32 of ORIGINAL (uncompressed) file
+   - Followed immediately by payload of exactly `chunkSize` bytes.
+   - Total packet size = 16 + chunkSize bytes (Plan A = 256 B, Plan B = 176 B).
+
+B. LT Fountain Coding (Spec §6, src/lib/lt.js, encoder.js, decoder.js):
+   - PRNG: Mulberry32 seeded with random 32-bit integer per droplet.
+   - Robust Soliton Distribution:
+     * Parameters: c = 0.05, delta = 0.5
+     * Spike at index = floor(K / R), where R = c * ln(K / delta) * sqrt(K)
+     * Binary search sampling over pre-computed CDF table (cached per K).
+   - Chunk Selection: Selects `degree` distinct chunks in [0, K) using Mulberry32.
+     Complement sampling is used when degree > K/2 for efficiency.
+   - Payload Construction: 32-bit word XOR across the selected chunks.
+   - Decoder: Incremental GF(2) Gaussian Elimination:
+     * Maintains pivot bitmask (Uint32Array) and pivot payload for each chunk.
+     * When incoming droplet arrives, reduces it against existing pivots.
+     * If degree > 0 after reduction, becomes a new pivot row; rank increments.
+     * If degree == 0, classified as redundant ('dependent') and dropped silently.
+     * When rank == K, performs back-substitution once to reconstruct all chunks.
+
+C. Pipeline Integrity (Spec §6.5, src/lib/pipeline.js):
+   - prepareFile(bytes, chunkSize, sid):
+     Computes CRC32 of raw bytes, deflates via pako.deflate, splits into K chunks,
+     zero-pads the final chunk if necessary.
+   - assembleFile(decoder):
+     Concatenates reconstructed chunks, truncates to compressedLen, inflates via
+     pako.inflate, verifies CRC32 of result. Throws on any mismatch.
+
+D. Display Rasterization (Spec §6.7, src/lib/qrdraw.js):
+   - Calculates integer device pixels per module:
+     `devicePxPerModule = Math.floor(availableSquareDevicePx / totalModules)`
+   - Pure function `renderCellRgba`: Renders QR module matrix into flat RGBA
+     Uint8ClampedArray with 4-module quiet zone on all sides.
+   - Prevents sub-pixel blurring, browser antialiasing, and CSS scaling distortion.
+
+E. Quadrant Crop Receiver Geometry (Spec §6.8, src/lib/crop.js):
+   - Identifies central square in camera frame: `min(width, height)`.
+   - Divides into N×N quadrants (`paddingFraction = 0`).
+   - Closed decision: Unpadded quadrant partition guarantees zero inter-cell
+     overlap, preventing adjacent finder patterns from corrupting jsQR detection.
+
+--------------------------------------------------------------------------------
+6. TRANSMISSION PLANS (DOWNGRADE LADDER)
+--------------------------------------------------------------------------------
+| Plan | Grid | Chunk Size | Packet Size | QR Version | Modules/Cell | Capture Target |
+|:----:|:----:|:----------:|:-----------:|:----------:|:------------:|:--------------:|
+|  A   | 2×2  |   240 B    |    256 B    |    v10     |   65 (57+8)  | 1920×1080 (HD) |
+|  B   | 2×2  |   160 B    |    176 B    |    v8      |   57 (49+8)  | 1920×1080 (HD) |
+|  C   | 1×1  |   240 B    |    256 B    |    v10     |   65 (57+8)  | 1280×720 (720) |
+
+Strategy: Start with Plan A. If light or distance causes low decodes, downgrade
+to Plan B (smaller QR code, easier read) or Plan C (single large code).
+
+--------------------------------------------------------------------------------
+7. VERIFIED REAL-HARDWARE BENCHMARK
+--------------------------------------------------------------------------------
+Tested on CMF Phone 2 Pro (Android Chrome, live optical transfer from screen):
+  - Delivered Stream: 1080×1920 @ 30fps (Full HD portrait)
+  - Grid: 2×2 (Plan A)
+  - jsQR Latency: 70.9 ms / cell (~284 ms for 4 cells = ~3.5 scan frames/sec)
+  - Decode Rate: 0.9 droplets / second
+  - Elapsed Time: 7 seconds
+  - Rank / K: 6 / 6 (100% reconstructed)
+  - Result: Optical Gates G1 (cell read) and G2 (rank climb) officially PASSED.
+
+--------------------------------------------------------------------------------
+8. CLOSED ARCHITECTURAL DECISIONS (DO NOT ALTER)
+--------------------------------------------------------------------------------
+1. Crop Bug Closed: paddingFraction = 0 (quadrant partitioning). Zero inter-cell
+   overlap. Passes all synthetic suites 4/4 and real phone tests.
+2. Zero New Dependencies: No fountain code libraries, no heavy UI packages.
+3. No BarcodeDetector API, no clustering, no zoom > 1x.
+4. No AI in the data path: Fully deterministic math from pixel to file.
+5. Security Claims: Optical channel is public. Do not claim encryption or secrecy.
+6. Rate Metrics: Report "droplets/sec" (decode rate), not throughput in KB/s.
+7. Frame Rate: FPS must divide 60 (5, 6, 10, 12, 15, 20, 30). Default 10 FPS.
+8. Freezes at 2:30 PM: No code edits or redeploys after 2:30 PM before judging.
+
+--------------------------------------------------------------------------------
+9. TEST SUITE STATUS
+--------------------------------------------------------------------------------
+All 123 tests pass across 9 test files (`npm test`):
+  - test/format.test.js: Wire format packing, unpacking, negative tests
+  - test/lt.test.js: PRNG known-answer, Soliton CDF distribution, K=400 overhead
+  - test/codec.test.js: GF(2) incremental elimination, back-substitution, speed
+  - test/pipeline.test.js: 1KB/50KB/200KB roundtrips, 40% loss, burst loss
+  - test/qrdraw.test.js: Integer pixel layouts across DPRs and viewports
+  - test/crop.test.js: Quadrant boundaries and non-overlap verification
+  - test/sniff.test.js: Magic byte file detection (PNG, JPEG, PDF, ZIP, GIF)
+  - test/smoke.test.js: Library smoke verification (pako, qrcode, jsqr)
+  - test/synthetic.test.js: End-to-end synthetic camera simulation (A, B, C)
+
+Pass Count: 123 passing | 0 failing | Duration: ~6.0s
+
+--------------------------------------------------------------------------------
+10. RECENT ENHANCEMENTS & MULTI-TYPE FILE SUPPORT
+--------------------------------------------------------------------------------
+1. File Limit & "2 KB Lock" Removed:
+   - Initial 2 KB text demo payload was purely a quick-start evaluation sample.
+   - Raised file upload limit to 25 MB with drag-and-drop file upload.
+   - Any file type is supported: PNG, JPG, PDF, ZIP, TXT, JSON, MP3, etc.
+   - Replaced artificial warnings with real-time compression calculation & ETA.
+2. Instant 1-Click Demo Presets:
+   - 🖼️ Icon (PNG, 343 B): Instant ~0.3s visual transfer (K=2)
+   - 📄 Text (2 KB): Air-gap spec (~1.0s, K=3 deflated)
+   - 📊 JSON (8 KB): Structured sensor telemetry (~2.0s, K=8 deflated)
+   - 📜 Whitepaper (25 KB): Security markdown report (~6.0s, K=28 deflated)
+3. Receiver UX & HUD Hardening:
+   - Near-completion alert banner at >=90% rank to keep camera focused.
+   - Dual download buttons: Large Result Card button + Sticky HUD Banner.
+   - Intelligent sniffing: PNG, JPEG, PDF, ZIP, GIF, JSON, Markdown, and TXT.
+   - Image preview rendered immediately upon transfer completion.
+
+--------------------------------------------------------------------------------
+11. DEPLOYMENT & LIVE URLS
+--------------------------------------------------------------------------------
+Active Production Deploy (Clean Spec UI):
+  - Main URL:      https://lumenpipe-demo.netlify.app
+  - Transmitter:   https://lumenpipe-demo.netlify.app/#/send
+  - Receiver:      https://lumenpipe-demo.netlify.app/#/receive
+
+Stitch Futuristic Design System Permalink (Alternate UI):
+  - Permalink:     https://6ac20243cbf42ff2aa3d74cd--lumenpipe-demo.netlify.app
+
+Both URLs feature valid public HTTPS/SSL (required for getUserMedia camera access)
+and PWA offline caching via Service Worker.
+
+--------------------------------------------------------------------------------
+11. QUICK RUNBOOK COMMANDS
+--------------------------------------------------------------------------------
+Install:          npm ci
+Run Test Suite:   npm test
+Build Production: npm run build
+Preview Build:    npm run preview
+Deploy:           Managed via Netlify MCP (deploy-site to dist/)
+
+================================================================================
+END OF CODEBASE SUMMARY
+================================================================================
