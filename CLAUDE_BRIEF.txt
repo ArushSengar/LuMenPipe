@@ -1,0 +1,15 @@
+=== CLAUDE DEPLOYMENT BRIEF: PROJECT LUMENPIPE ===
+HACKATHON: Vibeathon - AI Powered Development
+TEAM REGISTRATION CHECKPOINT: Hard Validation Cut-off October 4, 2026, 06:00 AM IST.
+
+CORE OBJECTIVE:
+Build a zero-internet, zero-RF air-gapped data transfer engine utilizing React dashboards to flash high-frequency 2x2 matrix grids to receiving mobile devices (OnePlus Nord CE 2 Lite & CMF Phone 2 Pro) via a continuous browser camera parse loop.
+
+KEY ENGINEERING METRICS:
+1. Mathematical Pipeline: Utilizes Luby Transform Fountain Codes via pako-deflated byte symbols. Removes need for ACK/NACK validation loops.
+2. The X-Factor Broadcaster: Transfer speed never divides when adding devices. Laptop screen acts as a visual tower broadcast layer—multiple devices catch data simultaneously with zero performance degradation.
+3. Hardware Target Constraints: OnePlus Nord CE Lite runs 2x2 matrix configurations securely at 20 FPS (~200 KB/s stream bounds) to maintain focus stabilization rules. CMF Phone 2 Pro scales to 3x3 array configurations up to 1.2 MB/s.
+
+CORE TECH STACK:
+React, jsQR Matrix Engine, Pako Compression Libraries, Canvas HTML5 Layout Loops.
+==================================================
