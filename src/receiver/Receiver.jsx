@@ -1,4 +1,4 @@
-// src/receiver/Receiver.jsx — Camera scanner, HUD, calibration & result card (spec §6.8, §6.9, prompts P6, P7b, P8)
+// src/receiver/Receiver.jsx — Camera scanner, HUD, calibration, result card & P10 hardening (spec §6.8, §6.9, prompts P6, P7b, P8, P10)
 
 import React, { useState, useEffect, useRef } from 'react';
 import jsQR from 'jsqr';
@@ -12,6 +12,7 @@ export default function Receiver() {
   const [gridN, setGridN] = useState(2); // default 2x2 per spec
   const [hudState, setHudState] = useState('IDLE'); // IDLE, STARTING, SEARCHING, STREAMING, COMPLETE, FAILED
   const [failureReason, setFailureReason] = useState('');
+  const [foreignNotice, setForeignNotice] = useState('');
   const [deliveredSettings, setDeliveredSettings] = useState({ width: 0, height: 0, frameRate: 0 });
   const [copiedStats, setCopiedStats] = useState(false);
 
@@ -40,6 +41,7 @@ export default function Receiver() {
   const frameCallbackIdRef = useRef(null);
   const cropCanvasRef = useRef(null);
   const hudTimerRef = useRef(null);
+  const wakeLockRef = useRef(null);
 
   // High-frequency counters stored in refs (no setState inside the scan loop!)
   const scanRoundsCountRef = useRef(0);
@@ -47,6 +49,7 @@ export default function Receiver() {
   const jsqrMsTotalRef = useRef(0);
   const jsqrCallsCountRef = useRef(0);
   const lastCellDecodeTimeRef = useRef({});
+  const lastAnyDecodeTimeRef = useRef(0);
   const startTimeRef = useRef(0);
   const completionTimeRef = useRef(null);
 
@@ -68,12 +71,42 @@ export default function Receiver() {
     };
   }, [blobUrl]);
 
+  const requestWakeLock = async () => {
+    if ('wakeLock' in navigator && navigator.wakeLock?.request) {
+      try {
+        wakeLockRef.current = await navigator.wakeLock.request('screen');
+      } catch {
+        // Feature-detected, errors swallowed per prompt P10
+      }
+    }
+  };
+
+  const releaseWakeLock = () => {
+    if (wakeLockRef.current) {
+      wakeLockRef.current.release().catch(() => {});
+      wakeLockRef.current = null;
+    }
+  };
+
   const startCamera = async () => {
     if (hudState === 'STARTING' || isScanningRef.current) return;
     setHudState('STARTING');
     setFailureReason('');
+    setForeignNotice('');
     completionTimeRef.current = null;
     clearResult();
+
+    if (typeof window !== 'undefined' && window.isSecureContext === false) {
+      setHudState('FAILED');
+      setFailureReason('Camera requires a secure HTTPS or localhost connection.');
+      return;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setHudState('FAILED');
+      setFailureReason('Your browser does not support camera access (navigator.mediaDevices is unavailable).');
+      return;
+    }
 
     decoderRef.current.reset();
     scanRoundsCountRef.current = 0;
@@ -81,6 +114,7 @@ export default function Receiver() {
     jsqrMsTotalRef.current = 0;
     jsqrCallsCountRef.current = 0;
     lastCellDecodeTimeRef.current = {};
+    lastAnyDecodeTimeRef.current = 0;
 
     try {
       const constraints = {
@@ -114,6 +148,9 @@ export default function Receiver() {
         isScanningRef.current = true;
         setHudState('SEARCHING');
 
+        // Request Screen Wake Lock (P10)
+        requestWakeLock();
+
         // Start scanning loop
         scheduleNextFrame();
 
@@ -122,12 +159,20 @@ export default function Receiver() {
       }
     } catch (err) {
       setHudState('FAILED');
-      setFailureReason(`Camera error: ${err.message}`);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setFailureReason('Camera permission was denied. Please allow camera access in your browser settings and reload.');
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        setFailureReason('No camera device found on this system.');
+      } else {
+        setFailureReason(`Camera error: ${err.message}`);
+      }
     }
   };
 
   const stopCamera = () => {
     isScanningRef.current = false;
+    releaseWakeLock();
+
     if (frameCallbackIdRef.current) {
       if (videoRef.current && 'cancelVideoFrameCallback' in videoRef.current) {
         videoRef.current.cancelVideoFrameCallback(frameCallbackIdRef.current);
@@ -170,6 +215,7 @@ export default function Receiver() {
     decoderRef.current.reset();
     setHudState('IDLE');
     setFailureReason('');
+    setForeignNotice('');
     setStats({
       scanRoundsPerSec: 0,
       decodesPerSec: 0,
@@ -251,6 +297,10 @@ export default function Receiver() {
         if (status === 'innovative' || status === 'dependent' || status === 'done') {
           decodesCountRef.current++;
           lastCellDecodeTimeRef.current[i] = performance.now();
+          lastAnyDecodeTimeRef.current = performance.now();
+        } else if (status === 'foreign') {
+          // Different sid mid-transfer (P10)
+          lastAnyDecodeTimeRef.current = 0;
         }
       }
     }
@@ -292,6 +342,10 @@ export default function Receiver() {
 
       const progressPercent = K > 0 ? Math.min(100, Math.round((rank / K) * 100)) : 0;
 
+      // P10 Cover-and-resume check:
+      // Show 'SEARCHING' in HUD after 1.5 s without a decode; rank is NOT reset!
+      const timeSinceLastDecode = now - lastAnyDecodeTimeRef.current;
+
       // Update state machine
       if (decoder.isDone) {
         if (completionTimeRef.current === null) {
@@ -317,7 +371,7 @@ export default function Receiver() {
           }
           stopCamera();
         }
-      } else if (rank > 0) {
+      } else if (rank > 0 && timeSinceLastDecode < 1500) {
         setHudState('STREAMING');
       } else {
         setHudState('SEARCHING');
@@ -379,6 +433,12 @@ export default function Receiver() {
       {!isSecure && (
         <div className="alert alert-error">
           ⚠️ Camera requires a secure context (HTTPS or localhost). Please load via HTTPS.
+        </div>
+      )}
+
+      {foreignNotice && (
+        <div className="alert alert-warning">
+          {foreignNotice}
         </div>
       )}
 

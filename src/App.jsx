@@ -2,6 +2,7 @@ import React from 'react';
 import Landing from './Landing.jsx';
 import Sender from './sender/Sender.jsx';
 import Receiver from './receiver/Receiver.jsx';
+import { ErrorBoundary } from './ErrorBoundary.jsx';
 
 function getRoute() {
   const hash = window.location.hash;
@@ -21,7 +22,15 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
-  if (route === 'send') return <Sender />;
-  if (route === 'receive') return <Receiver />;
-  return <Landing />;
+  const renderContent = () => {
+    if (route === 'send') return <Sender />;
+    if (route === 'receive') return <Receiver />;
+    return <Landing />;
+  };
+
+  return (
+    <ErrorBoundary>
+      {renderContent()}
+    </ErrorBoundary>
+  );
 }
