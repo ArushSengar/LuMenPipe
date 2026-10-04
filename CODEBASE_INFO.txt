@@ -237,13 +237,20 @@ Pass Count: 123 passing | 0 failing | Duration: ~6.0s
    - 📜 Whitepaper (25 KB): Security markdown report (~6.0s, K=28 deflated)
 3. Receiver UX & HUD Hardening:
    - Near-completion alert banner at >=90% rank to keep camera focused.
-   - Dual download buttons: Large Result Card button + Sticky HUD Banner.
-   - Intelligent sniffing: PNG, JPEG, PDF, ZIP, GIF, JSON, Markdown, and TXT.
-   - Image preview rendered immediately upon transfer completion.
+4. Core Engine Hardening & Bug Fixes:
+   - Fixed unaligned ArrayBuffer offset crash in decoder.js by copying directly to rowPayload.
+   - Added OverconstrainedError camera fallback in Receiver for legacy webcams.
+   - Converted download triggers to native HTML5 anchor tags (<a download>) for mobile compatibility.
+   - Generated PWA assets (favicon.svg, icon-192.png, icon-512.png) to eliminate 404s.
+   - Synchronized commit history and pushed directly to GitHub origin/main.
 
 --------------------------------------------------------------------------------
 11. DEPLOYMENT & LIVE URLS
 --------------------------------------------------------------------------------
+GitHub Repository:
+  - Repository:    https://github.com/ArushSengar/LuMenPipe.git
+  - Branch:        main (Up-to-date with all fixes & demo files)
+
 Active Production Deploy (Clean Spec UI):
   - Main URL:      https://lumenpipe-demo.netlify.app
   - Transmitter:   https://lumenpipe-demo.netlify.app/#/send
