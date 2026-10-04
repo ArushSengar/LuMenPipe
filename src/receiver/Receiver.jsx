@@ -23,7 +23,7 @@ function saveFile(bytes, filename, mime) {
 
 export default function Receiver() {
   const [isSecure, setIsSecure] = useState(true);
-  const [gridN, setGridN] = useState(2); // default 2x2 per spec
+  const [gridN, setGridN] = useState(1); // default 1x1 for Plan C ultra-fast single QR scanning
   const [hudState, setHudState] = useState('IDLE'); // IDLE, STARTING, SEARCHING, STREAMING, COMPLETE, FAILED
   const [failureReason, setFailureReason] = useState('');
   const [foreignNotice, setForeignNotice] = useState('');
@@ -217,9 +217,12 @@ export default function Receiver() {
       videoRef.current.srcObject = null;
     }
 
-    if (hudState !== 'COMPLETE' && hudState !== 'FAILED') {
-      setHudState('IDLE');
-    }
+    setHudState((prev) => {
+      if (prev === 'COMPLETE' || prev === 'FAILED' || decoderRef.current?.isDone) {
+        return 'COMPLETE';
+      }
+      return 'IDLE';
+    });
   };
 
   const clearResult = () => {
@@ -260,6 +263,35 @@ export default function Receiver() {
     } else {
       frameCallbackIdRef.current = requestAnimationFrame(scanFrame);
     }
+  };
+
+  const handleTransferComplete = () => {
+    const decoder = decoderRef.current;
+    if (!decoder || !decoder.isDone || completionTimeRef.current !== null) return;
+
+    const now = performance.now();
+    const elapsedSec = Math.max(0, (now - startTimeRef.current) / 1000);
+    completionTimeRef.current = Math.round(elapsedSec * 10) / 10;
+
+    try {
+      const fileBytes = assembleFile(decoder);
+      const crcHex = (decoder.crc32 >>> 0).toString(16).toUpperCase().padStart(8, '0');
+      const sniff = sniffFileType(fileBytes);
+      const blob = new Blob([fileBytes], { type: sniff.mime });
+      const url = URL.createObjectURL(blob);
+
+      setBlobUrl(url);
+      setResultData({
+        bytes: fileBytes,
+        crcHex,
+        sniff
+      });
+      setHudState('COMPLETE');
+    } catch (err) {
+      setHudState('FAILED');
+      setFailureReason(err.message);
+    }
+    stopCamera();
   };
 
   // Main scan loop — strictly NO setState inside!
@@ -319,6 +351,12 @@ export default function Receiver() {
           decodesCountRef.current++;
           lastCellDecodeTimeRef.current[i] = performance.now();
           lastAnyDecodeTimeRef.current = performance.now();
+
+          // Immediately assemble and complete upon final droplet!
+          if (status === 'done' || decoder.isDone) {
+            handleTransferComplete();
+            return;
+          }
         } else if (status === 'foreign') {
           // Different sid mid-transfer (P10)
           lastAnyDecodeTimeRef.current = 0;
@@ -370,27 +408,7 @@ export default function Receiver() {
       // Update state machine
       if (decoder.isDone) {
         if (completionTimeRef.current === null) {
-          completionTimeRef.current = elapsedSec;
-          // Assemble and verify file
-          try {
-            const fileBytes = assembleFile(decoder);
-            const crcHex = (decoder.crc32 >>> 0).toString(16).toUpperCase().padStart(8, '0');
-            const sniff = sniffFileType(fileBytes);
-            const blob = new Blob([fileBytes], { type: sniff.mime });
-            const url = URL.createObjectURL(blob);
-
-            setBlobUrl(url);
-            setResultData({
-              bytes: fileBytes,
-              crcHex,
-              sniff
-            });
-            setHudState('COMPLETE');
-          } catch (err) {
-            setHudState('FAILED');
-            setFailureReason(err.message);
-          }
-          stopCamera();
+          handleTransferComplete();
         }
       } else if (rank > 0 && timeSinceLastDecode < 1500) {
         setHudState('STREAMING');
@@ -542,7 +560,7 @@ export default function Receiver() {
         </div>
 
         <div className="control-actions">
-          {hudState === 'COMPLETE' && resultData ? (
+          {resultData ? (
             <button
               type="button"
               className="btn btn-primary btn-top-download"
@@ -563,13 +581,13 @@ export default function Receiver() {
             {copiedStats ? 'Copied!' : 'Copy stats'}
           </button>
           <button className="btn btn-secondary" onClick={resetAll}>
-            {hudState === 'COMPLETE' ? 'New Transfer' : 'Reset'}
+            {resultData ? 'New Transfer' : 'Reset'}
           </button>
         </div>
       </div>
 
       {/* Main Viewport Area: Shows Verification Card on COMPLETE, or Live Camera Stream while scanning */}
-      {hudState === 'COMPLETE' && resultData ? (
+      {resultData ? (
         <div ref={resultCardRef} className="result-card verification-card verification-card-viewport">
           <div className="result-header">
             <span className="result-badge-success">✓ CRC32 VERIFIED</span>
@@ -685,7 +703,7 @@ export default function Receiver() {
           />
         </div>
 
-        {hudState === 'COMPLETE' && resultData && (
+        {resultData && (
           <div className="hud-download-banner">
             <button
               type="button"
@@ -721,8 +739,8 @@ export default function Receiver() {
 
           <div className="hud-item">
             <span className="hud-label">Status</span>
-            <span className="hud-value" style={{ color: hudState === 'COMPLETE' ? '#00ff66' : undefined }}>
-              <strong>{hudState}</strong>
+            <span className="hud-value" style={{ color: (resultData || hudState === 'COMPLETE') ? '#00ff66' : undefined }}>
+              <strong>{resultData ? 'COMPLETE' : hudState}</strong>
             </span>
           </div>
 

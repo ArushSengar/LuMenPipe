@@ -9,8 +9,8 @@ import { prepareFile } from '../lib/pipeline.js';
 const FPS_OPTIONS = [5, 6, 10, 12, 15, 20, 30];
 
 export default function Sender() {
-  const [selectedPlanId, setSelectedPlanId] = useState('A');
-  const [fps, setFps] = useState(10);
+  const [selectedPlanId, setSelectedPlanId] = useState('C'); // Default Plan C (1×1 Big QR) for maximum speed and size
+  const [fps, setFps] = useState(15); // Default 15 fps for ultra-fast transfer
   const [fileData, setFileData] = useState(null);
   const [fileWarning, setFileWarning] = useState('');
   const [fileError, setFileError] = useState('');
